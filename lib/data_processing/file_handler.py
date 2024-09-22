@@ -1,3 +1,7 @@
+"""
+This module contains functions for handling file uploads.
+"""
+
 import os
 import uuid
 from fastapi import UploadFile, HTTPException
@@ -5,6 +9,7 @@ from lib.data_processing.read_data import read_data
 from lib.logger.logger_config import setup_logger
 
 logger = setup_logger(__name__)
+
 
 async def handle_file_upload(file: UploadFile) -> dict:
     """

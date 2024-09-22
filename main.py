@@ -2,8 +2,6 @@
 This is a simple FastAPI application that generates random data points and returns them as a list.
 """
 
-import os
-import uuid
 from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
