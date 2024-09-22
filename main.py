@@ -8,7 +8,9 @@ import random
 from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from lib.logger.logger_config import setup_logger
 
+logger = setup_logger(__name__)
 app = FastAPI()
 
 # Add CORS middleware
@@ -34,10 +36,12 @@ async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tupl
     Returns:
         List[Tuple[int, int]]: A list of tuples containing random (x, y) coordinates.
     """
-    return [
+    logger.info("Generating %d random data points between %d and %d", num_points, min_value, max_value)
+    data = [
         (random.randint(min_value, max_value), random.randint(min_value, max_value))
         for _ in range(num_points)
     ]
+    return data
 
 
 @app.post("/upload_file")
@@ -55,6 +59,7 @@ async def upload_file(file: UploadFile = File(...)):
         HTTPException: If there's an error during the file upload process.
     """
     try:
+        logger.info("Uploading file: %s", file.filename)
         upload_dir = "uploaded_files"
         os.makedirs(upload_dir, exist_ok=True)
 
@@ -69,6 +74,7 @@ async def upload_file(file: UploadFile = File(...)):
             while content := await file.read(1024 * 1024):  # Read in 1MB chunks
                 buffer.write(content)
 
+        logger.info("File uploaded successfully: %s", unique_filename)
         return {
             "filename": unique_filename,
             "original_filename": file.filename,
@@ -76,6 +82,7 @@ async def upload_file(file: UploadFile = File(...)):
         }
 
     except Exception as error:
+        logger.error("Error uploading file: %s", str(error), exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"An error occurred while uploading the file: {str(error)}"
         ) from error
@@ -84,4 +91,5 @@ async def upload_file(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
 
+    logger.info("Starting the FastAPI application")
     uvicorn.run("main:app", host="0.0.0.0", port=3000, reload=True)
