@@ -4,12 +4,12 @@ This is a simple FastAPI application that generates random data points and retur
 
 import os
 import uuid
-import random
 from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from lib.logger.logger_config import setup_logger
 from lib.data_processing.read_data import read_data
+from lib.data_processing.generate_data import generate_data
 
 logger = setup_logger(__name__)
 app = FastAPI()
@@ -45,15 +45,9 @@ async def get_data(
         raise HTTPException(
             status_code=422, detail="min_value must be less than or equal to max_value"
         )
+    generated_data = generate_data(num_points, min_value, max_value, logger)
 
-    logger.info(
-        "Generating %d random data points between %f and %f", num_points, min_value, max_value
-    )
-    data = [
-        (random.uniform(min_value, max_value), random.uniform(min_value, max_value))
-        for _ in range(num_points)
-    ]
-    return data
+    return generated_data
 
 
 @app.post("/upload_file")
