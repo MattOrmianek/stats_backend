@@ -34,7 +34,6 @@ uploaded_files/*
 
 # Dependencies
 /site-packages/
-/lib/
 /bin/
 
 # Virtual environment
