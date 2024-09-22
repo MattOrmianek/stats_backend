@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from lib.logger.logger_config import setup_logger
 from lib.data_processing.read_data import read_data
+
 logger = setup_logger(__name__)
 app = FastAPI()
 
@@ -36,7 +37,9 @@ async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tupl
     Returns:
         List[Tuple[int, int]]: A list of tuples containing random (x, y) coordinates.
     """
-    logger.info("Generating %d random data points between %d and %d", num_points, min_value, max_value)
+    logger.info(
+        "Generating %d random data points between %d and %d", num_points, min_value, max_value
+    )
     data = [
         (random.randint(min_value, max_value), random.randint(min_value, max_value))
         for _ in range(num_points)
@@ -46,6 +49,9 @@ async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tupl
 
 @app.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
+    """
+    Upload a file and read the data.
+    """
     try:
         logger.info("Uploading file: %s", file.filename)
         upload_dir = "uploaded_files"
@@ -63,15 +69,15 @@ async def upload_file(file: UploadFile = File(...)):
                 buffer.write(content)
 
         logger.info("File uploaded successfully: %s", unique_filename)
-        df = read_data(file_path)
-        logger.info("Data frame from file: %s", df)
+        data_frame = read_data(file_path)
+        logger.info("Data frame from file: %s", data_frame)
 
         return {
             "filename": unique_filename,
             "original_filename": file.filename,
             "status": "File uploaded and processed successfully",
-            "rows": df.shape[0],
-            "columns": df.shape[1]
+            "rows": data_frame.shape[0],
+            "columns": data_frame.shape[1],
         }
 
     except Exception as error:
