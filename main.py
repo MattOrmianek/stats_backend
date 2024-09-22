@@ -9,7 +9,7 @@ from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from lib.logger.logger_config import setup_logger
-
+from lib.data_processing.read_data import read_data
 logger = setup_logger(__name__)
 app = FastAPI()
 
@@ -46,18 +46,6 @@ async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tupl
 
 @app.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
-    """
-    Upload a file to the server.
-
-    Args:
-        file (UploadFile): The file to be uploaded.
-
-    Returns:
-        dict: A dictionary containing the filename and status of the upload.
-
-    Raises:
-        HTTPException: If there's an error during the file upload process.
-    """
     try:
         logger.info("Uploading file: %s", file.filename)
         upload_dir = "uploaded_files"
@@ -75,10 +63,15 @@ async def upload_file(file: UploadFile = File(...)):
                 buffer.write(content)
 
         logger.info("File uploaded successfully: %s", unique_filename)
+        df = read_data(file_path)
+        logger.info("Data frame from file: %s", df)
+
         return {
             "filename": unique_filename,
             "original_filename": file.filename,
-            "status": "File uploaded successfully",
+            "status": "File uploaded and processed successfully",
+            "rows": df.shape[0],
+            "columns": df.shape[1]
         }
 
     except Exception as error:
