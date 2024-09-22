@@ -28,6 +28,12 @@ async def handle_file_upload(file: UploadFile) -> dict:
 
         # Generate a unique filename to prevent overwriting
         file_extension = os.path.splitext(file.filename)[1]
+
+        # Check if the file extension is .xlsx
+        if file_extension.lower() not in [".xlsx", ".xls"]:
+            logger.warning("Attempted to upload invalid file type: %s", file_extension)
+            return {"error": "Invalid file type. Only .xlsx and .xls files are allowed."}
+
         unique_filename = f"{uuid.uuid4()}{file_extension}"
         file_path = os.path.join(upload_dir, unique_filename)
 
@@ -37,8 +43,13 @@ async def handle_file_upload(file: UploadFile) -> dict:
             while content := await file.read(1024 * 1024):  # Read in 1MB chunks
                 buffer.write(content)
 
-        logger.info("File uploaded successfully: %s", unique_filename)
-        data_frame = read_data(file_path)
+        # Check if the file is a valid Excel file
+        try:
+            data_frame = read_data(file_path, logger)
+        except Exception as error:  # pylint: disable=broad-exception-caught
+            logger.error("Error reading data from file: %s", str(error))
+            return {"error": "Uploaded file is not a valid Excel file."}
+
         logger.info("Data frame from file: %s", data_frame)
 
         return {

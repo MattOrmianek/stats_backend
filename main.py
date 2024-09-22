@@ -53,7 +53,12 @@ async def upload_file(file: UploadFile = File(...)):
     """
     Upload a file and read the data.
     """
-    return await handle_file_upload(file)
+    response = await handle_file_upload(file)
+    if "error" in response:
+        logger.error("Error uploading file: %s", response["error"])
+        raise HTTPException(status_code=400, detail=response["error"])  # Updated line
+    logger.info("File uploaded successfully: %s", response)
+    return response
 
 
 if __name__ == "__main__":
