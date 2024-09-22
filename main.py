@@ -2,11 +2,12 @@
 This is a simple FastAPI application that generates random data points and returns them as a list.
 """
 
-import random
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-import shutil
 import os
+import uuid
+import random
+from typing import List, Tuple
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File, HTTPException
 
 app = FastAPI()
 
@@ -20,33 +21,64 @@ app.add_middleware(
 )
 
 
-@app.get("/get_data")
-async def get_data():
+@app.get("/get_random_data")
+async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tuple[int, int]]:
     """
-    This endpoint generates a list of random data points.
+    Generate a list of random data points.
+
+    Args:
+        num_points (int): Number of data points to generate. Defaults to 100.
+        min_value (int): Minimum value for x and y coordinates. Defaults to 0.
+        max_value (int): Maximum value for x and y coordinates. Defaults to 1000.
+
+    Returns:
+        List[Tuple[int, int]]: A list of tuples containing random (x, y) coordinates.
     """
-    data = []
-    for _ in range(0, 100):
-        random_x = random.randint(0, 1000)
-        random_y = random.randint(0, 1000)
-        data.append((random_x, random_y))
-    return data
+    return [
+        (random.randint(min_value, max_value), random.randint(min_value, max_value))
+        for _ in range(num_points)
+    ]
 
 
 @app.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
     """
-    This endpoint uploads a file to the server.
+    Upload a file to the server.
+
+    Args:
+        file (UploadFile): The file to be uploaded.
+
+    Returns:
+        dict: A dictionary containing the filename and status of the upload.
+
+    Raises:
+        HTTPException: If there's an error during the file upload process.
     """
-    upload_dir = "uploaded_files"
-    os.makedirs(upload_dir, exist_ok=True)
+    try:
+        upload_dir = "uploaded_files"
+        os.makedirs(upload_dir, exist_ok=True)
 
-    file_path = os.path.join(upload_dir, file.filename)
+        # Generate a unique filename to prevent overwriting
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        # Use a context manager for file handling
+        with open(file_path, "wb") as buffer:
+            await file.seek(0)  # Ensure we're at the start of the file
+            while content := await file.read(1024 * 1024):  # Read in 1MB chunks
+                buffer.write(content)
 
-    return {"filename": file.filename, "status": "File uploaded successfully"}
+        return {
+            "filename": unique_filename,
+            "original_filename": file.filename,
+            "status": "File uploaded successfully",
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred while uploading the file: {str(error)}"
+        ) from error
 
 
 if __name__ == "__main__":
