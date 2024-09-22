@@ -6,7 +6,10 @@ import random
 from typing import List, Tuple
 import logging
 
-def generate_data(num_points: int, min_value: float, max_value: float, logger: logging.Logger) -> List[Tuple[float, float]]:
+
+def generate_data(
+    num_points: int, min_value: float, max_value: float, logger: logging.Logger
+) -> List[Tuple[float, float]]:
     """
     Generate a list of random data points.
     """
