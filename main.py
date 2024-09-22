@@ -7,7 +7,7 @@ import uuid
 import random
 from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from lib.logger.logger_config import setup_logger
 from lib.data_processing.read_data import read_data
 
@@ -25,23 +25,30 @@ app.add_middleware(
 
 
 @app.get("/get_random_data")
-async def get_data(num_points: int, min_value: int, max_value: int) -> List[Tuple[int, int]]:
+async def get_data(
+    num_points: int = Query(default=100, ge=1),
+    min_value: float = Query(default=0.0),
+    max_value: float = Query(default=1.0)
+) -> List[Tuple[float, float]]:
     """
     Generate a list of random data points.
 
     Args:
         num_points (int): Number of data points to generate. Defaults to 100.
-        min_value (int): Minimum value for x and y coordinates. Defaults to 0.
-        max_value (int): Maximum value for x and y coordinates. Defaults to 1000.
+        min_value (float): Minimum value for x and y coordinates. Defaults to 0.0.
+        max_value (float): Maximum value for x and y coordinates. Defaults to 1.0.
 
     Returns:
-        List[Tuple[int, int]]: A list of tuples containing random (x, y) coordinates.
+        List[Tuple[float, float]]: A list of tuples containing random (x, y) coordinates.
     """
+    if min_value > max_value:
+        raise HTTPException(status_code=422, detail="min_value must be less than or equal to max_value")
+
     logger.info(
-        "Generating %d random data points between %d and %d", num_points, min_value, max_value
+        "Generating %d random data points between %f and %f", num_points, min_value, max_value
     )
     data = [
-        (random.randint(min_value, max_value), random.randint(min_value, max_value))
+        (random.uniform(min_value, max_value), random.uniform(min_value, max_value))
         for _ in range(num_points)
     ]
     return data
