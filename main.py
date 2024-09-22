@@ -8,8 +8,8 @@ from typing import List, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from lib.logger.logger_config import setup_logger
-from lib.data_processing.read_data import read_data
 from lib.data_processing.generate_data import generate_data
+from lib.data_processing.file_handler import handle_file_upload
 
 logger = setup_logger(__name__)
 app = FastAPI()
@@ -55,39 +55,7 @@ async def upload_file(file: UploadFile = File(...)):
     """
     Upload a file and read the data.
     """
-    try:
-        logger.info("Uploading file: %s", file.filename)
-        upload_dir = "uploaded_files"
-        os.makedirs(upload_dir, exist_ok=True)
-
-        # Generate a unique filename to prevent overwriting
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join(upload_dir, unique_filename)
-
-        # Use a context manager for file handling
-        with open(file_path, "wb") as buffer:
-            await file.seek(0)  # Ensure we're at the start of the file
-            while content := await file.read(1024 * 1024):  # Read in 1MB chunks
-                buffer.write(content)
-
-        logger.info("File uploaded successfully: %s", unique_filename)
-        data_frame = read_data(file_path)
-        logger.info("Data frame from file: %s", data_frame)
-
-        return {
-            "filename": unique_filename,
-            "original_filename": file.filename,
-            "status": "File uploaded and processed successfully",
-            "rows": data_frame.shape[0],
-            "columns": data_frame.shape[1],
-        }
-
-    except Exception as error:
-        logger.error("Error uploading file: %s", str(error), exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"An error occurred while uploading the file: {str(error)}"
-        ) from error
+    return await handle_file_upload(file)
 
 
 if __name__ == "__main__":
