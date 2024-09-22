@@ -16,8 +16,10 @@ def generate_data(
     logger.info(
         "Generating %d random data points between %f and %f", num_points, min_value, max_value
     )
-    data = [
-        (random.uniform(min_value, max_value), random.uniform(min_value, max_value))
-        for _ in range(num_points)
-    ]
+
+    def generate_point() -> Tuple[float, float]:
+        """Generate a single random point."""
+        return (random.uniform(min_value, max_value), random.uniform(min_value, max_value))
+
+    data = [generate_point() for _ in range(num_points)]
     return data
