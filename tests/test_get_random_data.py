@@ -53,7 +53,9 @@ def test_get_random_data_custom_values():
     min_value = -10
     max_value = 10
 
-    response = client.get(f"/get_random_data?num_points={num_points}&min_value={min_value}&max_value={max_value}")
+    response = client.get(
+        f"/get_random_data?num_points={num_points}&min_value={min_value}&max_value={max_value}"
+    )
 
     assert response.status_code == 200
     data = response.json()

@@ -28,7 +28,7 @@ app.add_middleware(
 async def get_data(
     num_points: int = Query(default=100, ge=1),
     min_value: float = Query(default=0.0),
-    max_value: float = Query(default=1.0)
+    max_value: float = Query(default=1.0),
 ) -> List[Tuple[float, float]]:
     """
     Generate a list of random data points.
@@ -42,7 +42,9 @@ async def get_data(
         List[Tuple[float, float]]: A list of tuples containing random (x, y) coordinates.
     """
     if min_value > max_value:
-        raise HTTPException(status_code=422, detail="min_value must be less than or equal to max_value")
+        raise HTTPException(
+            status_code=422, detail="min_value must be less than or equal to max_value"
+        )
 
     logger.info(
         "Generating %d random data points between %f and %f", num_points, min_value, max_value
