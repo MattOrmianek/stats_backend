@@ -30,7 +30,7 @@ def test_upload_file_success():
     assert response.status_code == 200
     assert response.json()["status"] == "File uploaded and processed successfully"
     assert response.json()["original_filename"] == test_path
-    assert response.json()["rows"] >= 0  # Adjust based on your expected data frame
+    assert response.json()["rows"] >= 0
 
 
 def test_upload_file_no_file():
