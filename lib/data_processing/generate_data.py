@@ -3,13 +3,12 @@ This module contains functions for generating random data points.
 """
 
 import random
-from typing import List, Tuple
-import logging
+from lib.tools import timeit
+from lib.logger.logger_config import logger
 
 
-def generate_data(
-    num_points: int, min_value: float, max_value: float, logger: logging.Logger
-) -> List[Tuple[float, float]]:
+@timeit("generate_data", logger)
+def generate_data(num_points: int, min_value: float, max_value: float) -> list[tuple[float, float]]:
     """
     Generate a list of random data points.
     """
@@ -17,7 +16,7 @@ def generate_data(
         "Generating %d random data points between %f and %f", num_points, min_value, max_value
     )
 
-    def generate_point() -> Tuple[float, float]:
+    def generate_point() -> tuple[float, float]:
         """Generate a single random point."""
         return (random.uniform(min_value, max_value), random.uniform(min_value, max_value))
 

@@ -6,13 +6,15 @@ from logging.handlers import RotatingFileHandler
 import logging
 import colorlog
 
+logger = None
+
 
 def setup_logger(name):
     """
     Setup the logger with the given name.
     """
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    _logger = logging.getLogger(name)
+    _logger.setLevel(logging.DEBUG)
 
     # Console Handler
     console_handler = logging.StreamHandler()
@@ -39,7 +41,10 @@ def setup_logger(name):
     console_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
 
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+    _logger.addHandler(console_handler)
+    _logger.addHandler(file_handler)
 
-    return logger
+    return _logger
+
+
+logger = setup_logger("logger")
